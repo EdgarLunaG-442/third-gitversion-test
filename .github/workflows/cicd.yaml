@@ -1,0 +1,22 @@
+name: CI-CD
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - feature/*
+    - develop
+    - release/*
+    - hotfix/*
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+    - develop
+
+jobs:        
+  calculate-version:
+    uses: ./.github/workflows/calculate-version.yaml
+    secrets: inherit
+    with:
+      VERSION_USE_CONFIG_FILE: true
+      WITH_REPO_TAGGING: true
+        

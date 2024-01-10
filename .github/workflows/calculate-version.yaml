@@ -1,0 +1,118 @@
+on:  
+  workflow_call:
+    inputs: 
+      GIT_CHECKOUT_REPO: 
+        required: false
+        type: string
+      GIT_CHECKOUT_REF: 
+        required: false
+        type: string
+        default: ${{ github.head_ref }}    
+      WITH_REPO_TAGGING: 
+        required: false
+        type: boolean
+        default: false
+      VERSION_USE_CONFIG_FILE:
+        required: false
+        type: boolean
+        default: false
+      VERSION_CONFIG_FILE:
+        required: false
+        type: string
+        default: "VersionConfig.yaml"
+      VERSION_CONFIG_REPO:
+        required: false
+        type: string
+        default: false
+      VERSION_CONFIG_REPO_BRANCH:
+        required: false
+        type: string
+        default: "main"
+      VERSION_GIT_TAG_PREFIX:
+        description: Optional prefix to the git tag created by versioning, defaults to empty (no prefix)
+        required: false
+        type: string
+    outputs:
+      version:
+        description: "Calculated Version"
+        value: ${{ jobs.calculate-version.outputs.version }}
+    secrets:
+      CI_PAT:
+        required: false
+ 
+ 
+jobs:
+  calculate-version:
+    runs-on: ubuntu-latest
+    outputs: 
+      version: ${{ steps.final.outputs.version }}
+    steps:
+    - name: Checkout Repository (Current)
+      uses: actions/checkout@v3
+      if: ${{ inputs.GIT_CHECKOUT_REPO == '' }}
+      with:
+        ref: ${{ inputs.GIT_CHECKOUT_REF }}
+        fetch-depth: 0
+ 
+    - name: Checkout Repository (Away)
+      uses: actions/checkout@v3
+      if: ${{ inputs.GIT_CHECKOUT_REPO }}
+      with:
+        repository: ${{ inputs.GIT_CHECKOUT_REPO }}
+        ref: ${{ inputs.GIT_CHECKOUT_REF }}
+        fetch-depth: 0
+        token: ${{ secrets.CI_PAT }}     
+ 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.15
+      with:
+        versionSpec: '5.12.0'
+      # Checkout gitversion file as nested repository
+    - name: Checkout gitversion file from ${{ inputs.VERSION_CONFIG_REPO }}
+      if: ${{ inputs.VERSION_CONFIG_REPO != 'false' }}
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.VERSION_CONFIG_REPO }}
+        path: gitversion-repo
+        ref: ${{ inputs.VERSION_CONFIG_REPO_BRANCH }}
+        token: ${{ secrets.CI_PAT }}
+    - name: Determine Version
+      id:   gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.15
+      with:
+        useConfigFile: ${{ inputs.VERSION_USE_CONFIG_FILE }}
+        configFilePath: ${{ inputs.VERSION_CONFIG_FILE }}
+    - name: Display SemVer -> ${{ steps.gitversion.outputs.semVer }}
+      id: final
+      env:
+        VERSION_GIT_TAG_PREFIX: ${{ inputs.VERSION_GIT_TAG_PREFIX }}
+        GITVERSION_OUTPUT_SEMVER: ${{ steps.gitversion.outputs.semVer }}
+      run: |
+        echo "SemVer: $GITVERSION_SEMVER"
+        PREFIXED_TAG="${VERSION_GIT_TAG_PREFIX}${GITVERSION_OUTPUT_SEMVER}"
+        echo "PREFIXED_TAG: ${PREFIXED_TAG}"
+        echo "version=${PREFIXED_TAG}" >> $GITHUB_OUTPUT
+    - name: Github | Repo | Tagging
+      if: inputs.WITH_REPO_TAGGING == true
+      uses: actions/github-script@v6.3.3
+      with:
+        github-token: ${{ secrets.EDGARPAT }}
+        script: |
+          github.rest.git.listMatchingRefs({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'tags/${{ steps.final.outputs.version }}'
+          }).then(result => {
+            console.log(result)
+ 
+            const exactMatched = result.data.filter((entry) => entry.ref === 'refs/tags/${{ steps.final.outputs.version }}')
+            if(exactMatched.length == 0) {
+              console.log('Tagging with ${{ steps.final.outputs.version }}')
+              github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/${{ steps.final.outputs.version }}',
+                sha: context.sha
+              })
+            }
+          });
