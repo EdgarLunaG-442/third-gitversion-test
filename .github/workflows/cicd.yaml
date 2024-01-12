@@ -12,11 +12,30 @@ on:
     branches:
     - develop
 
-jobs:        
+jobs:
+  get-increment-strategies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.EDGARPAT }}
+      - name: get-increment-strategies
+        id: get-increment-strategies
+        run: |
+          parent_regex="^(hot)?fix(es)?[/-].+|^releases?[/-].+"
+          actual_regex="^releases?[/-].+"
+          parent_branch=$(git show-branch | grep '*' | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
+          actual_branch=$(git symbolic-ref --short HEAD)
+          if [[ $actual_branch =~ $actual_regex ]] && [[ $parent_branch =~ $parent_regex ]]
+          then
+            sed -i 's/{{RELEASE_INCREMENT}}/Patch/g' VersionConfig.yaml
+          else
+            sed -i 's/{{RELEASE_INCREMENT}}/Major/g' VersionConfig.yaml
+          fi
+
   calculate-version:
     uses: ./.github/workflows/calculate-version.yaml
     secrets: inherit
     with:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
-        
