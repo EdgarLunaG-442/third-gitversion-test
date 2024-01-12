@@ -13,8 +13,10 @@ on:
     - develop
 
 jobs:
-  get-increment-strategies:
+  get_increment_strategies:
     runs-on: ubuntu-latest
+    outputs:
+      config_file: ${{ steps.get_increment_strategies.outputs.config_file }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -28,14 +30,16 @@ jobs:
           actual_branch=$(git symbolic-ref --short HEAD)
           if [[ $actual_branch =~ $actual_regex ]] && [[ $parent_branch =~ $parent_regex ]]
           then
-            sed -i 's/{{RELEASE_INCREMENT}}/Patch/g' VersionConfig.yaml
+            echo "config_file=VersionConfigRPatch.yaml" >> $GITHUB_OUTPUT
           else
-            sed -i 's/{{RELEASE_INCREMENT}}/Major/g' VersionConfig.yaml
+            echo "config_file=VersionConfigRMajor.yaml" >> $GITHUB_OUTPUT
           fi
 
-  calculate-version:
+  calculate_version:
     uses: ./.github/workflows/calculate-version.yaml
+    needs: [get_increment_strategies]
     secrets: inherit
     with:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
+      VERSION_CONFIG_FILE: ${{needs.calculate_version.outputs.config_file}}
