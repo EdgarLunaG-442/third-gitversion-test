@@ -30,10 +30,12 @@ jobs:
           actual_branch=$(git symbolic-ref --short HEAD)
           if [[ $actual_branch =~ $actual_regex ]] && [[ $parent_branch =~ $parent_regex ]]
           then
-            echo "config_file=VersionConfigRPatch.yaml" >> $GITHUB_OUTPUT
+            file_path="VersionConfigRPatch.yaml"
+            
           else
-            echo "config_file=VersionConfigRMajor.yaml" >> $GITHUB_OUTPUT
+            file_path="VersionConfigRMajor.yaml"
           fi
+          echo "config_file=$file_path" >> $GITHUB_OUTPUT
 
   calculate_version:
     uses: ./.github/workflows/calculate-version.yaml
@@ -42,4 +44,4 @@ jobs:
     with:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
-      VERSION_CONFIG_FILE: ${{needs.calculate_version.outputs.config_file}}
+      VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
