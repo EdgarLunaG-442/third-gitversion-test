@@ -1,1 +1,1 @@
-# third-gitversion-test__
+# third-gitversion-test
