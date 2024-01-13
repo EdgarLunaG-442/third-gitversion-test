@@ -24,17 +24,29 @@ jobs:
       - name: get_increment_strategies
         id: get_increment_strategies
         run: |
-          parent_regex="^(hot)?fix(es)?[/-].+|^releases?[/-].+"
-          actual_regex="^releases?[/-].+"
-          parent_branch=$(git show-branch | grep '*' | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
-          actual_branch=$(git symbolic-ref --short HEAD)
-          if [[ $actual_branch =~ $actual_regex ]] && [[ $parent_branch =~ $parent_regex ]]
+          get_tag() {
+              local commit=$1
+              # Get the tag for the commit, or return an empty string if none
+              git describe --tags --exact-match "$commit" 2>/dev/null || echo ""
+          }
+          echo $$GITHUB_EVENT_NAME
+          file_path="version_config_files/release_major_config.yaml"
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
-            file_path="version_config_files/release_patch_config.yaml"
+            head_tag=$(get_tag HEAD)
+            prev_tag=$(get_tag HEAD~1)
+            actual_branch=$(git symbolic-ref --short HEAD)
+            tag_to_compare=${head_tag:-$prev_tag}
             
-          else
-            file_path="version_config_files/release_major_config.yaml"
+            actual_branch_regex="^releases?[/-].+"
+            prev_tag_regex="[[:digit:]]+\.0\.[[:digit:]]+|(hot)?fix(es)?"
+            
+            if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
+            then
+                file_path="version_config_files/release_patch_config.yaml"               
+            fi
           fi
+          echo "Config file to use: $file_path"
           echo "config_file=$file_path" >> $GITHUB_OUTPUT
 
   calculate_version:
