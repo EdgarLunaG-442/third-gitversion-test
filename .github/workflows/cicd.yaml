@@ -29,7 +29,7 @@ jobs:
               # Get the tag for the commit, or return an empty string if none
               git describe --tags --exact-match "$commit" 2>/dev/null || echo ""
           }
-          echo $$GITHUB_EVENT_NAME
+          echo $GITHUB_EVENT_NAME
           file_path="version_config_files/release_major_config.yaml"
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
