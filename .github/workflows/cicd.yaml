@@ -48,7 +48,7 @@ jobs:
             
             if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
             then
-                file_path="version_config_files/release_patch_config.yaml"               
+                file_path="version_config_files/release_major_config.yaml"               
             fi
           fi
           echo "Config file to use: $file_path"
