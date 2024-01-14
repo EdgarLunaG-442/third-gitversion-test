@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.EDGARPAT }}
+          fetch-depth: '0'
       - name: get_increment_strategies
         id: get_increment_strategies
         run: |
