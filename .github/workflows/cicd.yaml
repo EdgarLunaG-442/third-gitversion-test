@@ -61,5 +61,4 @@ jobs:
     with:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
-      GIT_CHECKOUT_REF: "0.1.0"
       VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
