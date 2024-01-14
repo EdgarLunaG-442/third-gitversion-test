@@ -35,8 +35,8 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
             echo "Adentro del selector de configuracion"
-            head_tag=git describe --tags --exact-match "$HEAD" 2>/dev/null || echo ""
-            prev_tag=git describe --tags --exact-match "HEAD~1" 2>/dev/null || echo ""
+            head_tag=$(git describe --tags --exact-match "$HEAD" 2>/dev/null || echo "")
+            prev_tag=$(git describe --tags --exact-match "HEAD~1" 2>/dev/null || echo "")
             actual_branch=$(git symbolic-ref --short HEAD)
             echo "el tag actual es: $head_tag"
             echo "el tag anterior es: $prev_tag"
