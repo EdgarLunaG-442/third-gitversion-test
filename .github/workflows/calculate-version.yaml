@@ -11,6 +11,7 @@ on:
       GIT_CHECKOUT_REF:
         required: false
         type: string
+        default: ${{ github.ref_name }}
       WITH_REPO_TAGGING: 
         required: false
         type: boolean
