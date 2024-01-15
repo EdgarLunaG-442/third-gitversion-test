@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       config_file: ${{ steps.get_increment_strategies.outputs.config_file }}
+      checkout_tag: ${{ steps.get_increment_strategies.outputs.checkout_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +25,8 @@ jobs:
           fetch-depth: '0'
       - name: get_increment_strategies
         id: get_increment_strategies
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           get_tag() {
               local commit=$1
@@ -32,27 +35,30 @@ jobs:
           }
           echo $GITHUB_EVENT_NAME
           file_path="version_config_files/release_major_config.yaml"
+          tag_to_use=$HEAD_REF
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
-            echo "Adentro del selector de configuracion"
-            head_tag=$(git describe --tags --exact-match "$HEAD" 2>/dev/null || echo "")
-            prev_tag=$(git describe --tags --exact-match "HEAD~1" 2>/dev/null || echo "")
+            head_tag=$(get_tag "HEAD" )
+            prev_tag=$(get_tag "HEAD~1")
             actual_branch=$(git symbolic-ref --short HEAD)
-            echo "el tag actual es: $head_tag"
-            echo "el tag anterior es: $prev_tag"
-            echo "la rama actual es: $actual_branch"
+            echo "actual tag is: $head_tag"
+            echo "previous tag is: $prev_tag"
+            echo "actual branch is: $actual_branch"
             tag_to_compare=${head_tag:-$prev_tag}
-            echo "el tag a usar es: $tag_to_compare"
+            echo "tag to use is: $tag_to_compare"
             actual_branch_regex="^releases?[/-].+"
-            prev_tag_regex="[[:digit:]]+\.0\.[[:digit:]]+|(hot)?fix(es)?"
+            prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|(hot)?fix(es)?"
             
             if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
             then
-                file_path="version_config_files/release_patch_config.yaml"               
+                file_path="version_config_files/release_patch_config.yaml"
+                tag_to_use=$prev_tag
             fi
           fi
           echo "Config file to use: $file_path"
+          echo "Tag to checkout: $tag_to_use"
           echo "config_file=$file_path" >> $GITHUB_OUTPUT
+          echo "checkout_tag=$tag_to_use" >> $GITHUB_OUTPUT
 
   calculate_version:
     uses: ./.github/workflows/calculate-version.yaml
@@ -62,3 +68,4 @@ jobs:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
       VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
+      GIT_CHECKOUT_REF: ${{needs.get_increment_strategies.outputs.checkout_tag}}
