@@ -32,7 +32,7 @@ branches:
     pre-release-weight: 30000
   hotfix:
     regex: ^(hot)?fix(es)?[/-]
-    tag: 'hotfix-{BranchName}'
+    tag: ''
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
