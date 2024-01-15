@@ -62,6 +62,9 @@ jobs:
             then
                 file_path="version_config_files/release_patch_config.yaml"
             fi
+            else
+                prev_tag="*"
+                prev_sha=""
           fi
           echo "Config file to use: $file_path"
           echo "Checkout ref to use: $prev_sha"
