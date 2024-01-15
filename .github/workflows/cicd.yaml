@@ -46,6 +46,8 @@ jobs:
                 if [[ -n $prev_tag ]]; then
                     break
                 fi
+                prev_tag=""
+                prev_sha=""
             done
             actual_branch=$(git symbolic-ref --short HEAD)
             echo "actual tag is: $head_tag"
