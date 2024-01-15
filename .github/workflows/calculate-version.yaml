@@ -49,8 +49,8 @@ jobs:
   calculate-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.final.outputs.version }}
       calculate_depth: ${{ steps.calculate_depth.outputs.calculate_depth }}
+      version: ${{ steps.final.outputs.version }}
     steps:
       - name: calculate_depth
         run: |
