@@ -39,7 +39,7 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
             head_tag=$(get_tag "$GITHUB_SHA" )
-            prev_tag=$(get_tag "prev_sha")
+            prev_tag=$(get_tag "$prev_sha")
             actual_branch=$(git symbolic-ref --short HEAD)
             echo "actual tag is: $head_tag"
             echo "previous tag is: $prev_tag"
