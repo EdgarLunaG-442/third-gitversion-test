@@ -4,10 +4,14 @@ on:
       GIT_CHECKOUT_REPO: 
         required: false
         type: string
-      GIT_CHECKOUT_REF: 
+      GIT_CHECKOUT_TAG:
         required: false
         type: string
-        default: ${{ github.head_ref }}    
+        default: "*"
+      GIT_CHECKOUT_REF:
+        required: false
+        type: string
+        default: "${{ github.head_ref }}"
       WITH_REPO_TAGGING: 
         required: false
         type: boolean
@@ -44,25 +48,38 @@ on:
 jobs:
   calculate-version:
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       version: ${{ steps.final.outputs.version }}
+      calc_depth: ${{ steps.calculate_depth.outputs.calc_depth }}
     steps:
+    - name: calculate_depth
+      run: |
+        if [[ "${{ inputs.GIT_CHECKOUT_TAG }}" == "*" ]]; then
+          echo "calc_depth=0" >> $GITHUB_OUTPUT
+        else
+          echo "calc_depth=100" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout Repository (Current)
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       if: ${{ inputs.GIT_CHECKOUT_REPO == '' }}
       with:
+        fetch-depth: ${{ steps.calculate_depth.outputs.calc_depth }}
         ref: ${{ inputs.GIT_CHECKOUT_REF }}
-        fetch-depth: 0
- 
     - name: Checkout Repository (Away)
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       if: ${{ inputs.GIT_CHECKOUT_REPO }}
       with:
+        fetch-depth: ${{ steps.calculate_depth.outputs.calc_depth }}
         repository: ${{ inputs.GIT_CHECKOUT_REPO }}
         ref: ${{ inputs.GIT_CHECKOUT_REF }}
-        fetch-depth: 0
         token: ${{ secrets.CI_PAT }}     
- 
+    - name: Fetch partial tag list
+      if: ${{ inputs.GIT_CHECKOUT_TAG }}
+      env:
+        CHECKOUT_TAG: ${{ inputs.GIT_CHECKOUT_TAG }}
+      run : |
+        git fetch origin "refs/tags/${CHECKOUT_TAG}:refs/tags/${CHECKOUT_TAG}"
+        git tag
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.15
       with:

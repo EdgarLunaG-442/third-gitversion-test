@@ -12,11 +12,61 @@ on:
     branches:
     - develop
 
-jobs:        
-  calculate-version:
+jobs:
+  get_increment_strategies:
+    runs-on: ubuntu-latest
+    outputs:
+      config_file: ${{ steps.get_increment_strategies.outputs.config_file }}
+      checkout_tag: ${{ steps.get_increment_strategies.outputs.checkout_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.EDGARPAT }}
+          fetch-depth: 0
+      - name: get_increment_strategies
+        id: get_increment_strategies
+        run: |
+          get_tag() {
+              local commit=$1
+              # Get the tag for the commit, or return an empty string if none
+              git describe --tags --exact-match "$commit" 2>/dev/null || echo ""
+          }
+          file_path="version_config_files/release_major_config.yaml"
+          prev_tag=""
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
+          then
+            head_tag=$(get_tag "$GITHUB_SHA" )
+            for i in {2..100}; do
+                prev_sha=$(git log -n $i --pretty=format:"%H" | tail -n 1)
+                prev_tag=$(get_tag "$prev_sha")
+                if [[ -n $prev_tag ]]; then
+                    break
+                fi
+                prev_tag=""
+            done
+            actual_branch=$(git symbolic-ref --short HEAD)
+            tag_to_compare=${head_tag:-$prev_tag}
+            actual_branch_regex="^releases?[/-].+|^(hot)?fix(es)?[/-].+"
+            prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|(hot)?fix(es)?"
+            
+            if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
+            then
+                file_path="version_config_files/release_patch_config.yaml"
+            else
+                prev_tag="*"
+            fi
+          fi
+          echo "Config file to use: $file_path"
+          echo "Checkout tag to use: $prev_tag"
+          echo "config_file=$file_path" >> $GITHUB_OUTPUT
+          echo "checkout_tag=$prev_tag" >> $GITHUB_OUTPUT
+
+  calculate_version:
     uses: ./.github/workflows/calculate-version.yaml
+    needs: [get_increment_strategies]
     secrets: inherit
     with:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
-        
+      VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
+      GIT_CHECKOUT_TAG: ${{needs.get_increment_strategies.outputs.checkout_tag}}
