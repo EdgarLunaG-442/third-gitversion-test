@@ -7,7 +7,7 @@ branches:
     track-merge-target: false
     tracks-release-branches: true
     is-release-branch: false
-    is-mainline: true
+    source-branches: ['master','release','feature','hotfix']
   feature:
     regex: ^features?[/-]
     tag: 'feature-{BranchName}'
@@ -32,22 +32,22 @@ branches:
     pre-release-weight: 30000
   hotfix:
     regex: ^(hot)?fix(es)?[/-]
-    tag: 'hotfix-{BranchName}'
+    tag: ''
     increment: Patch
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     tracks-release-branches: true
     is-release-branch: false
-    source-branches: ['master','release','feature','hotfix']
+    source-branches: ['master','release','hotfix']
   release:
     regex: ^releases?[/-]
     tag: ''
-    increment: Major
-    prevent-increment-of-merged-branch-version: true
+    increment: Patch
+    prevent-increment-of-merged-branch-version: false
     track-merge-target: true
     tracks-release-branches: false
     is-release-branch: true
-    source-branches: ['master']
+    source-branches: ['master','hotfix', 'release']
 
 ignore:
   sha: []
