@@ -49,17 +49,8 @@ jobs:
   calculate-version:
     runs-on: ubuntu-latest
     outputs:
-      calculate_depth: ${{ steps.calculate_depth.outputs.calculate_depth }}
       version: ${{ steps.final.outputs.version }}
     steps:
-      - name: calculate_depth
-        run: |
-          if [[ "${{ inputs.GIT_CHECKOUT_TAG }}" == "*" ]]; then
-            echo "calculate_depth='0'" >> $GITHUB_OUTPUT
-          else
-            echo "calculate_depth=100" >> $GITHUB_OUTPUT
-          fi
-          cat $GITHUB_OUTPUT
       - name: Checkout Repository (Current)
         uses: actions/checkout@v4
         if: ${{ inputs.GIT_CHECKOUT_REPO == '' }}
