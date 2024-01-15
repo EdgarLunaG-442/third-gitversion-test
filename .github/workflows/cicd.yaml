@@ -51,7 +51,7 @@ jobs:
             echo "actual branch is: $actual_branch"
             tag_to_compare=${head_tag:-$prev_tag}
             echo "tag to use is: $tag_to_compare"
-            actual_branch_regex="^releases?[/-].+"
+            actual_branch_regex="^releases?[/-].+|^(hot)?fix(es)?[/-].+"
             prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|(hot)?fix(es)?"
             
             if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
