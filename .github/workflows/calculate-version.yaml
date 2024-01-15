@@ -59,6 +59,7 @@ jobs:
         else
           echo "calc_depth=100" >> $GITHUB_OUTPUT
         fi
+        cat $GITHUB_OUTPUT
     - name: Checkout Repository (Current)
       uses: actions/checkout@v4
       if: ${{ inputs.GIT_CHECKOUT_REPO == '' }}
