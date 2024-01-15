@@ -11,7 +11,7 @@ on:
       GIT_CHECKOUT_REF:
         required: false
         type: string
-        default: "${{ github.head_ref }}"
+        default: ${{ github.head_ref }}
       WITH_REPO_TAGGING: 
         required: false
         type: boolean
@@ -55,7 +55,7 @@ jobs:
     - name: calculate_depth
       run: |
         if [[ "${{ inputs.GIT_CHECKOUT_TAG }}" == "*" ]]; then
-          echo "calc_depth=100" >> $GITHUB_OUTPUT
+          echo "calc_depth='0'" >> $GITHUB_OUTPUT
         else
           echo "calc_depth=100" >> $GITHUB_OUTPUT
         fi
