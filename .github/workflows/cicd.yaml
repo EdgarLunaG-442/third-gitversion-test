@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       config_file: ${{ steps.get_increment_strategies.outputs.config_file }}
-      checkout_tag: ${{ steps.get_increment_strategies.outputs.checkout_tag }}
+      checkout_sha: ${{ steps.get_increment_strategies.outputs.checkout_sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,12 +33,13 @@ jobs:
           }
           echo $GITHUB_EVENT_NAME
           file_path="version_config_files/release_major_config.yaml"
-          tag_to_use=$GITHUB_HEAD_REF
-          echo "default tag is: $GITHUB_HEAD_REF"
+          sha_to_use=$GITHUB_SHA
+          echo "default sha is: $GITHUB_SHA"
+          prev_sha=$(git log -n 2 --pretty=format:"%H" | tail -n 1)
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
-            head_tag=$(get_tag "HEAD" )
-            prev_tag=$(get_tag "HEAD~1")
+            head_tag=$(get_tag "$GITHUB_SHA" )
+            prev_tag=$(get_tag "prev_sha")
             actual_branch=$(git symbolic-ref --short HEAD)
             echo "actual tag is: $head_tag"
             echo "previous tag is: $prev_tag"
@@ -51,13 +52,13 @@ jobs:
             if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
             then
                 file_path="version_config_files/release_patch_config.yaml"
-                tag_to_use=$prev_tag
+                sha_to_use=$prev_sha
             fi
           fi
           echo "Config file to use: $file_path"
-          echo "Tag to checkout: $tag_to_use"
+          echo "commit SHA to checkout: $sha_to_use"
           echo "config_file=$file_path" >> $GITHUB_OUTPUT
-          echo "checkout_tag=$tag_to_use" >> $GITHUB_OUTPUT
+          echo "checkout_sha=$sha_to_use" >> $GITHUB_OUTPUT
 
   calculate_version:
     uses: ./.github/workflows/calculate-version.yaml
@@ -67,4 +68,4 @@ jobs:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
       VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
-      GIT_CHECKOUT_REF: ${{needs.get_increment_strategies.outputs.checkout_tag}}
+      GIT_CHECKOUT_REF: ${{needs.get_increment_strategies.outputs.checkout_sha}}
