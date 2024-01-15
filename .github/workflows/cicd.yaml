@@ -67,10 +67,9 @@ jobs:
             fi
           fi
           echo "Config file to use: $file_path"
-          echo "Checkout ref to use: $prev_sha"
+
           echo "Checkout tag to use: $prev_tag"
           echo "config_file=$file_path" >> $GITHUB_OUTPUT
-          echo "checkout_ref=$prev_sha" >> $GITHUB_OUTPUT
           echo "checkout_tag=$prev_tag" >> $GITHUB_OUTPUT
 
   calculate_version:
@@ -81,5 +80,4 @@ jobs:
       VERSION_USE_CONFIG_FILE: true
       WITH_REPO_TAGGING: true
       VERSION_CONFIG_FILE: ${{needs.get_increment_strategies.outputs.config_file}}
-      GIT_CHECKOUT_REF: ${{needs.get_increment_strategies.outputs.checkout_ref}}
       GIT_CHECKOUT_TAG: ${{needs.get_increment_strategies.outputs.checkout_tag}}

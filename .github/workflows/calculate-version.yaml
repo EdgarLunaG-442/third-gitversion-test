@@ -62,7 +62,7 @@ jobs:
       with:
         repository: ${{ inputs.GIT_CHECKOUT_REPO }}
         ref: ${{ inputs.GIT_CHECKOUT_REF }}
-        fetch-depth: 0
+        fetch-depth: 100
         token: ${{ secrets.CI_PAT }}     
     - name: Fetch partial tag list
       if: ${{ inputs.GIT_CHECKOUT_TAG }}
