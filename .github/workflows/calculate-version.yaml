@@ -10,8 +10,8 @@ on:
         default: "*"
       GIT_CHECKOUT_DEPTH:
         required: false
-        type: number
-        default: 0
+        type: string
+        default: '0'
       GIT_CHECKOUT_REF:
         required: false
         type: string
@@ -70,7 +70,7 @@ jobs:
           ref: ${{ inputs.GIT_CHECKOUT_REF }}
           token: ${{ secrets.CI_PAT }}
       - name: Fetch partial tag list
-        if: ${{ inputs.GIT_CHECKOUT_TAG != '' && inputs.GIT_CHECKOUT_DEPTH != 0  }}
+        if: ${{ inputs.GIT_CHECKOUT_TAG != '' && inputs.GIT_CHECKOUT_DEPTH != '0'  }}
         env:
           CHECKOUT_TAG: ${{ inputs.GIT_CHECKOUT_TAG }}
         run: |
