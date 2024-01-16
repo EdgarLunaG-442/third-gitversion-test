@@ -32,7 +32,7 @@ jobs:
               git tag --points-at "$commit" 2>/dev/null | sort -V  | tail -n 1 || echo ""
           }
           file_path="version_config_files/release_major_config.yaml"
-          prev_tag=""
+          prev_tag="*"
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
             head_tag=$(get_tag "$GITHUB_SHA" )
