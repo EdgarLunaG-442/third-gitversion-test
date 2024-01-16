@@ -34,7 +34,7 @@ jobs:
           }
           file_path="version_config_files/release_major_config.yaml"
           prev_tag="*"
-          c_depth=0
+          c_depth="0"
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
           then
             head_tag=$(get_tag "$GITHUB_SHA" )
@@ -54,7 +54,7 @@ jobs:
             if [[ $tag_to_compare =~ $prev_tag_regex ]] && [[ $actual_branch =~ $actual_branch_regex ]]
             then
                 file_path="version_config_files/release_patch_config.yaml"
-                c_depth=10000000
+                c_depth="10000000"
             else
                 prev_tag="*"
             fi
