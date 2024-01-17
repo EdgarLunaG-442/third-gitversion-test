@@ -103,8 +103,8 @@ jobs:
           D_INCREMENT: ${{ inputs.VERSION_CONF_DEVELOP_INCREMENT }}
           V_CONFIG_PATH: ${{ inputs.VERSION_CONFIG_FILE }}
         run: |
-          sed -i 's/<<RELEASE_INCREMENT>>/${R_INCREMENT}/g' ${V_CONFIG_PATH}
-          sed -i 's/<<DEVELOP_INCREMENT>>/${D_INCREMENT}/g' ${V_CONFIG_PATH}
+          sed -i 's/<<RELEASE_INCREMENT>>/$R_INCREMENT/g' ${V_CONFIG_PATH}
+          sed -i 's/<<DEVELOP_INCREMENT>>/$D_INCREMENT/g' ${V_CONFIG_PATH}
           cat ${V_CONFIG_PATH}
       - name: Determine Version
         id: gitversion
