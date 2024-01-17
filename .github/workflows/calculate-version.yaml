@@ -36,6 +36,10 @@ on:
         required: false
         type: string
         default: 'Major'
+      VERSION_CONF_DEVELOP_INCREMENT:
+        required: false
+        type: string
+        default: 'Minor'
       VERSION_CONFIG_REPO_BRANCH:
         required: false
         type: string
@@ -93,12 +97,14 @@ jobs:
           path: gitversion-repo
           ref: ${{ inputs.VERSION_CONFIG_REPO_BRANCH }}
           token: ${{ secrets.CI_PAT }}
-      - name: Replace release increment strategy
+      - name: Replace increment strategies
         env:
           R_INCREMENT: ${{ inputs.VERSION_CONF_RELEASE_INCREMENT }}
+          D_INCREMENT: ${{ inputs.VERSION_CONF_DEVELOP_INCREMENT }}
           V_CONFIG_PATH: ${{ inputs.VERSION_CONFIG_FILE }}
         run: |
           sed -i 's/<<RELEASE_INCREMENT>>/${R_INCREMENT}/g' ${V_CONFIG_PATH}
+          sed -i 's/<<DEVELOP_INCREMENT>>/${D_INCREMENT}/g' ${V_CONFIG_PATH}
       - name: Determine Version
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.15

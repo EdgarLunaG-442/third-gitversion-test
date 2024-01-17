@@ -2,7 +2,7 @@ branches:
   master:
     regex: ^dev(elop)?(ment)?$
     tag: ''
-    increment: None
+    increment: <<DEVELOP_INCREMENT>>
     prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     tracks-release-branches: true
