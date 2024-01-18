@@ -53,11 +53,12 @@ jobs:
             tag_to_compare=${head_tag:-$prev_tag}
             rel_patch_branch_regex="^releases?[/-].+|^patch[/-].+"
             rel_patch_commit_regex="release|patch"
+            merge_regex="[[:space:]]?merge[[:space:]]"
             dev_regex="^dev(elop)?(ment)?$"
             patch_regex="patch"
             prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|patch"
-            commit_message=$(echo '${{ github.event.commits[0].message }}' | tr '[:upper:]' '[:lower:]')
-            if [[ ( $tag_to_compare =~ $patch_regex || ( $commit_message =~ '[[:space:]]?merge[[:space:]]' && $commit_message =~ $rel_patch_commit_regex ) )  && $ACTUAL_BRANCH_NAME =~ $dev_regex ]]
+            commit_message=$(echo "${{ github.event.commits[0].message }}" | tr '[:upper:]' '[:lower:]')
+            if [[ ( $tag_to_compare =~ $patch_regex || ( $commit_message =~ $merge_regex && $commit_message =~ $rel_patch_commit_regex ) )  && $ACTUAL_BRANCH_NAME =~ $dev_regex ]]
             then
               d_increment='Patch'
             fi;
