@@ -1,0 +1,92 @@
+name: CI-CD
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/*
+      - develop
+      - release/*
+      - patch/*
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+    branches:
+      - develop
+
+jobs:
+  get_increment_strategies:
+    runs-on: ubuntu-latest
+    outputs:
+      release_increment: ${{ steps.get_increment_strategies.outputs.release_increment }}
+      develop_increment: ${{ steps.get_increment_strategies.outputs.develop_increment }}
+      checkout_tag: ${{ steps.get_increment_strategies.outputs.checkout_tag }}
+      checkout_depth: ${{ steps.get_increment_strategies.outputs.checkout_depth }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.EDGARPAT }}
+          fetch-depth: 0
+      - name: get_increment_strategies
+        id: get_increment_strategies
+        env:
+          ACTUAL_BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          get_tag() {
+              local commit=$1
+              # Get the tag for the commit, or return an empty string if none
+              git tag --points-at "$commit" 2>/dev/null | sort -V  | tail -n 1 || echo ""
+          }
+          r_increment='Major'
+          d_increment='Minor'
+          prev_tag="*"
+          c_depth="0"
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]
+          then
+            head_tag=$(get_tag "$GITHUB_SHA" )
+            for i in {2..100}; do
+                prev_sha=$(git log -n $i --pretty=format:"%H" | tail -n 1)
+                prev_tag=$(get_tag "$prev_sha")
+                if [[ -n $prev_tag ]]; then
+                    break
+                fi
+                prev_tag=""
+            done
+            tag_to_compare=${head_tag:-$prev_tag}
+            rel_patch_regex="^releases?[/-].+|^patch[/-].+"
+            dev_regex="^dev(elop)?(ment)?$"
+            patch_regex="patch"
+            prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|patch"
+            commit_message=$(echo '${{ github.event.commits[0].message }}' | tr '[:upper:]' '[:lower:]')
+            if [[ ( $tag_to_compare =~ $patch_regex || ( $commit_message =~ '[[:space:]]?merge[[:space:]]' && $commit_message =~ $rel_patch_regex ) )  && $ACTUAL_BRANCH_NAME =~ $dev_regex ]]
+            then
+              d_increment='Patch'
+            fi;
+          
+            if [[ $tag_to_compare =~ $prev_tag_regex && $ACTUAL_BRANCH_NAME =~ $rel_patch_regex ]]
+            then
+                r_increment='Patch'
+                c_depth="10000000"
+            else
+                prev_tag="*"
+            fi
+          fi
+          echo "Release increment strategy to use: $r_increment"
+          echo "Develop increment strategy to use: $d_increment"
+          echo "Checkout tag to use: $prev_tag"
+          echo "Checkout depth to use: $c_depth"
+          echo "release_increment=$r_increment" >> $GITHUB_OUTPUT
+          echo "develop_increment=$d_increment" >> $GITHUB_OUTPUT
+          echo "checkout_tag=$prev_tag" >> $GITHUB_OUTPUT
+          echo "checkout_depth=$c_depth" >> $GITHUB_OUTPUT
+
+  calculate_version:
+    uses: ./.github/workflows/calculate-version.yaml
+    needs: [ get_increment_strategies ]
+    secrets: inherit
+    with:
+      VERSION_USE_CONFIG_FILE: true
+      WITH_REPO_TAGGING: true
+      VERSION_CONFIG_FILE: ".github/version_config_files/VersionConfig.yaml"
+      GIT_CHECKOUT_TAG: ${{needs.get_increment_strategies.outputs.checkout_tag}}
+      GIT_CHECKOUT_DEPTH: ${{needs.get_increment_strategies.outputs.checkout_depth}}
+      VERSION_CONF_RELEASE_INCREMENT: ${{needs.get_increment_strategies.outputs.release_increment}}
+      VERSION_CONF_DEVELOP_INCREMENT: ${{needs.get_increment_strategies.outputs.develop_increment}}
