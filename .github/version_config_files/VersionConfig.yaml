@@ -21,7 +21,7 @@ branches:
     regex: ^(pull|pull\-requests|pr)[/-]
     mode: ContinuousDeployment
     tag: "PullRequest"
-    increment: None
+    increment: Patch
     prevent-increment-of-merged-branch-version: false
     tag-number-pattern: '[/-](?<number>\d+)[-/]'
     track-merge-target: false
