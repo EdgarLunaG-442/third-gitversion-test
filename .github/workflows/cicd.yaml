@@ -29,6 +29,7 @@ jobs:
         id: get_increment_strategies
         env:
           ACTUAL_BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
         run: |
           get_tag() {
               local commit=$1
@@ -57,7 +58,7 @@ jobs:
             dev_regex="^dev(elop)?(ment)?$"
             patch_regex="patch"
             prev_tag_regex="^[[:digit:]]+\.0+\.[[:digit:]]+$|patch"
-            commit_message=$(echo "${{ github.event.commits[0].message }}" | tr '[:upper:]' '[:lower:]')
+            commit_message=$(echo "$COMMIT_MESSAGE" | tr '[:upper:]' '[:lower:]')
             if [[ ( $tag_to_compare =~ $patch_regex || ( $commit_message =~ $merge_regex && $commit_message =~ $rel_patch_commit_regex ) )  && $ACTUAL_BRANCH_NAME =~ $dev_regex ]]
             then
               d_increment='Patch'
